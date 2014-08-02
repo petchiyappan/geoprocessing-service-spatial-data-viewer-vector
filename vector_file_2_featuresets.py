@@ -1,3 +1,5 @@
+from arcpy import AddMessage
+
 __author__ = 'Yogesh'
 
 
@@ -5,6 +7,9 @@ import arcpy
 import zipfile
 import os.path
 import shutil
+import utilities
+
+
 # Function to unzipping the contents of the zip file
 #
 def unzip(source_filename, dest_dir):
@@ -25,22 +30,38 @@ def unzip(source_filename, dest_dir):
 arcpy.env.overwriteOutput = True
 
 inzip = arcpy.GetParameterAsText(0)  #r'C:\Users\Yogesh\Desktop\temp\states_21basic.zip'
-file_type= arcpy.GetParameter(1)
-
-arcpy.AddMessage(type(inzip))
+file_type= arcpy.GetParameterAsText(1)
 
 #is it required
 shutil.rmtree(arcpy.env.scratchFolder)
 
 unzip(inzip,arcpy.env.scratchFolder)
-fcs=[]
-for dirpath, dirnames, filenames in arcpy.da.Walk(arcpy.env.scratchFolder,
-                                                  datatype="FeatureClass",
-                                                  type="ALL"):
-    for filename in filenames:
-        arcpy.CopyFeatures_management(os.path.join(dirpath, filename),"in_memory/temp")
-        fc=arcpy.FeatureSet()
-        fc.load("in_memory/temp")
-        fcs.append(fc)
+fcs= []
+if file_type == 'shp' or file_type == 'gml':
+    fcs= utilities.fc2fcs(arcpy.env.scratchFolder)
+elif file_type == 'gdb' or file_type == 'mdb' or file_type == 'sde':
+    pass
+    #for converting geodatabase
+elif file_type == 'dwg':
+    pass
+    #for converting drawing files
+elif file_type == 'dgn':
+    pass
+elif file_type == 'dxf':
+    pass
+
+elif file_type == 'geojson':
+    pass
+    #for converting geojson
+
+elif file_type == 'topojson':
+    pass
+elif file_type == 'kml' or file_type == 'kmz':
+    pass
+
+elif file_type == 'gpx':
+    fcs= utilities.gpx2fc(arcpy.env.scratchFolder)
+else:
+    AddMessage("unknown file type")
 
 arcpy.SetParameter(2,fcs)
