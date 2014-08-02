@@ -24,8 +24,12 @@ def unzip(source_filename, dest_dir):
 
 arcpy.env.overwriteOutput = True
 
-inzip = arcpy.GetParameter(0) #r'C:\Users\Yogesh\Desktop\temp\states_21basic.zip'
+inzip = arcpy.GetParameterAsText(0)  #r'C:\Users\Yogesh\Desktop\temp\states_21basic.zip'
 file_type= arcpy.GetParameter(1)
+
+arcpy.AddMessage(type(inzip))
+
+#is it required
 shutil.rmtree(arcpy.env.scratchFolder)
 
 unzip(inzip,arcpy.env.scratchFolder)
