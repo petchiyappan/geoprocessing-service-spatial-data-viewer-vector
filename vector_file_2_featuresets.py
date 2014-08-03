@@ -36,9 +36,9 @@ file_type= arcpy.GetParameterAsText(1)
 shutil.rmtree(arcpy.env.scratchFolder)
 
 unzip(inzip,arcpy.env.scratchFolder)
-fcs= []
+fcs = []
 if file_type == 'shp' or file_type == 'gml':
-    fcs= utilities.fc2fcs(arcpy.env.scratchFolder)
+    fcs = utilities.fc2fcs(arcpy.env.scratchFolder)
 elif file_type == 'gdb' or file_type == 'mdb' or file_type == 'sde':
     pass
     #for converting geodatabase
@@ -60,7 +60,7 @@ elif file_type == 'kml' or file_type == 'kmz':
     pass
 
 elif file_type == 'gpx':
-    fcs= utilities.gpx2fc(arcpy.env.scratchFolder)
+    fcs = utilities.gpx2fc(arcpy.env.scratchFolder)
 else:
     AddMessage("unknown file type")
 

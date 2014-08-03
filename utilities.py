@@ -1,24 +1,34 @@
 __author__ = 'Yogesh'
 
 import arcpy
+from arcpy import arcpy, AddMessage
 import os
+
+def get_fc_list_rec(workspace):
+    for dir_path, dir_names, file_names in arcpy.da.Walk(workspace,
+                                                      datatype = 'FeatureClass',
+                                                      type = 'ALL'):
+        for filename in file_names:
+            yield os.path.join(dir_path, filename)
+
+def load_fc(temp_fc):
+    fc = arcpy.FeatureSet()
+    fc.load(temp_fc)
+    return fc
 
 
 def fc2fcs(workspace):
     """
-    Coverts all feature classes inside a workspace into featureset list works for GML, Shapefile
+    Coverts all feature classes inside a workspace into featureset list works for GML, Shapefile,
+    personal geodatabase, file geodatabase, sde geodatabase
     :param workspace:path of featureclass workspace
     :return:list of featureset objects
     """
     fcs = []
-    for dirpath, dirnames, filenames in arcpy.da.Walk(workspace,
-                                                      datatype='FeatureClass',
-                                                      type='ALL'):
-        for filename in filenames:
-            arcpy.CopyFeatures_management(os.path.join(dirpath, filename), 'in_memory/temp')
-            fc = arcpy.FeatureSet()
-            fc.load('in_memory/temp')
-            fcs.append(fc)
+    fc_paths = get_fc_list_rec(workspace)
+    for filename in fc_paths:
+        arcpy.CopyFeatures_management(filename, 'in_memory/temp')
+        fcs.append(load_fc('in_memory/temp'))
     return fcs
 
 
@@ -31,13 +41,11 @@ def get_file_list(workspace, file_ext):
 
 
 def gpx2fc(workspace):
-    #http://www.topografix.com/gpx.asp
+    # http://www.topografix.com/gpx.asp
     gpx_files = get_file_list(workspace, '.gpx')
     fcs = []
     for gpx_file in gpx_files:
         arcpy.GPXtoFeatures_conversion(gpx_file, 'in_memory/temp')
-        fc = arcpy.FeatureSet()
-        fc.load('in_memory/temp')
-        fcs.append(fc)
+        fcs.append(load_fc('in_memory/temp'))
     return fcs
 
