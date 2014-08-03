@@ -2,14 +2,15 @@ __author__ = 'Yogesh'
 
 import arcpy
 from arcpy import env
-from arcpy import AddMessage
+from arcpy import AddMessage, AddError
+from pprint import pprint
 import os
 
 
 def get_fc_list_rec(workspace):
     for dir_path, dir_names, file_names in arcpy.da.Walk(workspace,
-                                                      datatype = 'FeatureClass',
-                                                      type = 'ALL'):
+                                                         datatype='FeatureClass',
+                                                         type='ALL'):
         for filename in file_names:
             yield os.path.join(dir_path, filename)
 
@@ -52,16 +53,39 @@ def gpx2fc(workspace):
         fcs.append(load_fc('in_memory/temp'))
     return fcs
 
-#To extract features from gdb and mdb
-def get_geodb(gdb):
+
+# To extract features from gdb and mdb
+def get_geodb(gdb, file_type):
+    ws_type = None
+    #http://resources.arcgis.com/en/help/main/10.2/index.html#/ListWorkspaces/03q30000004z000000/
+    if file_type == 'gdb':
+        ws_type = 'FileGDB'
+    elif file_type == 'mdb':
+        ws_type = 'Access'
+    elif file_type == 'sde':
+        ws_type = 'SDE'
+    else:
+        AddError('undefined file type')
     env.workspace = gdb
+    workspaces = arcpy.ListWorkspaces("*", ws_type)
+
     lstFC = []
-    lstDT = arcpy.ListDatasets(gdb)
-    for fc in lstDT:
-        lstFC.append(fc)
-    lstFeatures = arcpy.ListFeatureClasses(gdb)
-    for fc in lstFeatures:
-        lstFC.append(fc)
-    return lstFC
+
+    for workspace in workspaces:
+        env.workspace = workspace
+        #http://resources.arcgis.com/en/help/main/10.2/index.html#//03q300000023000000
+        datasets = arcpy.ListDatasets(feature_type='feature')
+        datasets = [''] + datasets if datasets is not None else []
+
+        for ds in datasets:
+            for fc in arcpy.ListFeatureClasses(feature_dataset=ds):
+                path = os.path.join(arcpy.env.workspace, ds, fc)
+                lstFC.append(path)
+
+    fcs = []
+    for fc in lstFC:
+        arcpy.CopyFeatures_management(fc, 'in_memory/temp')
+        fcs.append(load_fc('in_memory/temp'))
+    return fcs
 
 

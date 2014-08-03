@@ -1,4 +1,4 @@
-from arcpy import AddMessage
+from arcpy import AddMessage,AddError
 
 __author__ = 'Yogesh'
 
@@ -36,13 +36,13 @@ file_type= arcpy.GetParameterAsText(1)
 shutil.rmtree(arcpy.env.scratchFolder)
 
 unzip(inzip,arcpy.env.scratchFolder)
+
 fcs = []
 if file_type == 'shp' or file_type == 'gml':
     fcs = utilities.fc2fcs(arcpy.env.scratchFolder)
 elif file_type == 'gdb' or file_type == 'mdb' or file_type == 'sde':
     #gdbworkspace input eg. c:/temp/temp.gdb
-    fcs = utilities.get_geodb(inzip)
-
+    fcs = utilities.get_geodb(arcpy.env.scratchFolder,file_type)
 elif file_type == 'dwg':
     pass
     #for converting drawing files
@@ -63,6 +63,6 @@ elif file_type == 'kml' or file_type == 'kmz':
 elif file_type == 'gpx':
     fcs = utilities.gpx2fc(arcpy.env.scratchFolder)
 else:
-    AddMessage("unknown file type")
+    AddError("unknown file type")
 
 arcpy.SetParameter(2,fcs)
