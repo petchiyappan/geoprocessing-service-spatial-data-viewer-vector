@@ -1,8 +1,10 @@
 __author__ = 'Yogesh'
 
 import arcpy
-from arcpy import arcpy, AddMessage
+from arcpy import env
+from arcpy import AddMessage
 import os
+
 
 def get_fc_list_rec(workspace):
     for dir_path, dir_names, file_names in arcpy.da.Walk(workspace,
@@ -10,6 +12,7 @@ def get_fc_list_rec(workspace):
                                                       type = 'ALL'):
         for filename in file_names:
             yield os.path.join(dir_path, filename)
+
 
 def load_fc(temp_fc):
     fc = arcpy.FeatureSet()
@@ -48,4 +51,17 @@ def gpx2fc(workspace):
         arcpy.GPXtoFeatures_conversion(gpx_file, 'in_memory/temp')
         fcs.append(load_fc('in_memory/temp'))
     return fcs
+
+#To extract features from gdb and mdb
+def get_geodb(gdb):
+    env.workspace = gdb
+    lstFC = []
+    lstDT = arcpy.ListDatasets(gdb)
+    for fc in lstDT:
+        lstFC.append(fc)
+    lstFeatures = arcpy.ListFeatureClasses(gdb)
+    for fc in lstFeatures:
+        lstFC.append(fc)
+    return lstFC
+
 
