@@ -49,6 +49,7 @@ class Tool(object):
             name="out_features",
             datatype="DEFeatureClass",
             #datatype="GPFeatureLayer",
+            #datatype="String",
             parameterType="Optional",
             multiValue="True",
             direction="Output")
@@ -115,7 +116,8 @@ class Tool(object):
         else:
             messages.AddError("unknown file type")
         messages.AddMessage(fcs[0].JSON[1:100])
-        parameters[2].value = fcs
+        #parameters[2].value = fcs
+        arcpy.SetParameter(2,fcs)
 
         return
 
