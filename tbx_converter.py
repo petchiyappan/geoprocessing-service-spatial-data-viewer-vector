@@ -2,10 +2,26 @@ __author__ = 'Yogesh'
 
 import arcpy
 from arcpy import env
-from arcpy import AddMessage, AddError
 from pprint import pprint
 import os
+import zipfile
+import os.path
 
+# Function to unzipping the contents of the zip file
+#
+def unzip(source_filename, dest_dir):
+    with zipfile.ZipFile(source_filename) as zf:
+        for member in zf.infolist():
+            # Path traversal defense copied from
+            # http://hg.python.org/cpython/file/tip/Lib/http/server.py#l789
+            words = member.filename.split('/')
+            path = dest_dir
+            for word in words[:-1]:
+                drive, word = os.path.splitdrive(word)
+                head, word = os.path.split(word)
+                if word in (os.curdir, os.pardir, ''): continue
+                path = os.path.join(path, word)
+            zf.extract(member, path)
 
 def get_fc_list_rec(workspace):
     for dir_path, dir_names, file_names in arcpy.da.Walk(workspace,
@@ -64,8 +80,6 @@ def get_geodb(gdb, file_type):
         ws_type = 'Access'
     elif file_type == 'sde':
         ws_type = 'SDE'
-    else:
-        AddError('undefined file type')
     env.workspace = gdb
     workspaces = arcpy.ListWorkspaces("*", ws_type)
 
@@ -87,5 +101,3 @@ def get_geodb(gdb, file_type):
         arcpy.CopyFeatures_management(fc, 'in_memory/temp')
         fcs.append(load_fc('in_memory/temp'))
     return fcs
-
-
